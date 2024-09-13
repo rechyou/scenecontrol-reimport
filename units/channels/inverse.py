@@ -7,6 +7,6 @@ def func(writer:TextIO, all_units: list, unit_id: int, properties: list):
     for i in range(len(properties)):
         v = properties[i]
         properties[i] = deserialize(writer, all_units, v)
-    args = ",".join(properties)
-    writer.write(f"{name} = __1 / {args}\n")
+    args = "".join(properties)
+    writer.write(f"local {name} = 1 / {args}\n")
     return name

@@ -65,9 +65,9 @@ def create_internal(key):
         name = get_name(unit_id)
         unit_type = all_units[unit_id]["Type"]
         if is_clone(unit_type):
-            writer.write(f"{name} = {key}.copy()\n")
+            writer.write(f"local {name} = {key}.copy()\n")
         else:
-            writer.write(f"{name} = {key}\n")
+            writer.write(f"local {name} = {key}\n")
         controller_deserialize(writer, all_units, unit_type, unit_id, properties)
         return name
     return wrap
@@ -75,11 +75,12 @@ def create_internal(key):
 def controller_deserialize(writer:TextIO, all_units: list, unit_type: str, unit_id: int, properties: list):
     properties = properties.copy()
     name = get_name(unit_id)
-    customParent = properties.pop(0)
-    if customParent is not None:
-        customParent = get_name(customParent)
+    customParent = deserialize(writer, all_units, properties.pop(0))
+    if customParent != "nil":
         writer.write(f"{name}.setParent({customParent})\n")
     active = deserialize(writer, all_units, properties.pop(0))
+    writer.write(f"{name}.active = {active}\n")
+    unit_type = unit_type.removeprefix("$")
     alt_unit_type = cast_unit(unit_type)
     if unit_type in position or alt_unit_type in position:
         enable = properties.pop(0)
@@ -165,7 +166,7 @@ def controller_deserialize(writer:TextIO, all_units: list, unit_type: str, unit_
             writer.write(f"{name}.angleY = {angleY}\n")
             writer.write(f"{name}.rotationIndividualX = {rotationIndividualX}\n")
             writer.write(f"{name}.rotationIndividualY = {rotationIndividualY}\n")
-            writer.write(f"{name}.rotationIndividualZ = {angleY}\n")
+            writer.write(f"{name}.rotationIndividualZ = {rotationIndividualZ}\n")
             writer.write(f"{name}.scaleIndividualX = {scaleIndividualX}\n")
             writer.write(f"{name}.scaleIndividualY = {scaleIndividualY}\n")
             writer.write(f"{name}.scaleIndividualZ = {scaleIndividualZ}\n")
@@ -175,6 +176,13 @@ def controller_deserialize(writer:TextIO, all_units: list, unit_type: str, unit_
                 writer.write(f"{name}.judgeOffsetX = {judgeOffsetX}\n")
                 writer.write(f"{name}.judgeOffsetY = {judgeOffsetY}\n")
                 writer.write(f"{name}.judgeOffsetZ = {judgeOffsetZ}\n")
+    if unit_type in camera or alt_unit_type in camera:
+        enable = properties.pop(0)
+        fieldOfView = deserialize(writer, all_units, properties.pop(0))
+        tiltFactor = deserialize(writer, all_units, properties.pop(0))
+        if enable:
+            writer.write(f"{name}.fieldOfView = {fieldOfView}\n")
+            writer.write(f"{name}.tiltFactor = {tiltFactor}\n")
     if unit_type in rect or alt_unit_type in rect:
         enable = properties.pop(0)
         rectW = deserialize(writer, all_units, properties.pop(0))
@@ -212,7 +220,7 @@ def controller_deserialize(writer:TextIO, all_units: list, unit_type: str, unit_
         lane2Alpha = deserialize(writer, all_units, properties.pop(0))
         lane3Alpha = deserialize(writer, all_units, properties.pop(0))
         lane4Alpha = deserialize(writer, all_units, properties.pop(0))
-        customSkin = writer, all_units, properties.pop(0)
+        customSkin = properties.pop(0)
         if enable:
             writer.write(f"{name}.edgeLAlpha = {edgeLAlpha}\n")
             writer.write(f"{name}.edgeRAlpha = {edgeRAlpha}\n")

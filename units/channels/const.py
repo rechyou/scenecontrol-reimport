@@ -5,11 +5,14 @@ constants = {}
 
 @deserializer(type_name="channel.const")
 def func(writer:TextIO, all_units: list, unit_id: int, properties: list):
+    global constants
     name = get_name(unit_id)
     value = properties[0]
-    if value in constants:
-        return constants[value]
+    valueKey = str(value)
+    if valueKey in constants:
+        # writer.write(f"{name} = {constants[valueKey]} -- constant rewrite\n")
+        return constants[valueKey]
     value = float(value)
-    writer.write(f"{name} = Channel.constant({value:g})\n")
-    constants[value] = name
+    writer.write(f"local {name} = Channel.constant({value:g})\n")
+    constants[valueKey] = name
     return name

@@ -8,5 +8,5 @@ def func(writer:TextIO, all_units: list, unit_id: int, properties: list):
         v = properties[i]
         properties[i] = deserialize(writer, all_units, v)
     args = "+".join(properties)
-    writer.write(f"{name} = {args}\n")
+    writer.write(f"local {name} = {args}\n")
     return name

@@ -7,8 +7,8 @@ def func(writer:TextIO, all_units: list, unit_id: int, properties: list):
     name = get_name(unit_id)
     unit_type = all_units[unit_id]["Type"]
     if is_clone(unit_type):
-        writer.write(f"{name} = Scene.hud.copy()\n")
+        writer.write(f"local {name} = Scene.hud.copy()\n")
     else:
-        writer.write(f"{name} = Scene.hud\n")
+        writer.write(f"local {name} = Scene.hud\n")
     controller_deserialize(writer, all_units, unit_type, unit_id, properties)
     return name

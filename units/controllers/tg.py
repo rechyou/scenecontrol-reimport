@@ -8,6 +8,7 @@ def func(writer:TextIO, all_units: list, unit_id: int, properties: list):
     unit_type = all_units[unit_id]["Type"]
     tgIndex = unit_type.split(".")[1]
     tgIndex = int(tgIndex)
-    writer.write(f"{name} = Scene.getNoteGroup({tgIndex})\n")
+    unit_type = "tg"
+    writer.write(f"local {name} = Scene.getNoteGroup({tgIndex})\n")
     controller_deserialize(writer, all_units, unit_type, unit_id, properties)
     return name

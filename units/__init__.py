@@ -17,7 +17,7 @@ FEATURE_JUDGE_MANIPULATION = "JUDGE_MANIPULATION"
 def get_name(index):
     random.seed(index)
     new_id = hex(random.randint(0, 2**32)).lstrip('0x').rjust(8, "0").upper()
-    return f"x{new_id}"
+    return f"_x{index}"
 
 
 def deserializer(type_name):
@@ -26,6 +26,7 @@ def deserializer(type_name):
     return wrap
 
 def add_deserializer(type_name, func):
+    sys.stderr.write(f"new deserializer: {type_name}\n")
     UNIT_DESERIALIZERS[type_name] = func
 
 def is_deserialized(unit_id):
@@ -36,22 +37,29 @@ def deserialize(writer:TextIO, all_units: list, unit_id: int):
         return "nil"
     properties = all_units[unit_id]["Properties"]
     if unit_id in deserialized:
-        return get_name(unit_id)
-    deserialized[unit_id] = True
+        return deserialized[unit_id]
+    # deserialized[unit_id] = True
     unit_type = all_units[unit_id]["Type"]
-    unit_type.lstrip("$")
+    unit_type = unit_type.removeprefix("$")
     unit_type_sub = unit_type.split(".")[0]
     if unit_type in UNIT_DESERIALIZERS:
-        return UNIT_DESERIALIZERS[unit_type](writer, all_units, unit_id, properties)
+        name = UNIT_DESERIALIZERS[unit_type](writer, all_units, unit_id, properties)
+        deserialized[unit_id] = name
+        return name
     if unit_type_sub in UNIT_DESERIALIZERS:
-        return UNIT_DESERIALIZERS[unit_type_sub](writer, all_units, unit_id, properties)
+        name = UNIT_DESERIALIZERS[unit_type_sub](writer, all_units, unit_id, properties)
+        deserialized[unit_id] = name
+        return name
     else:
         name = get_name(unit_id)
-        sys.stderr.write(f"WARNING: Unknown unit type: {unit_type}\n")
-        writer.write(f"{name} = nil -- UNKNOWN UNIT TYPE: {unit_type}\n")
+        sys.stderr.write(f"WARNING: Unknown unit type: {unit_type} of ID {unit_id}\n")
+        writer.write(f"{name} = nil -- UNKNOWN UNIT TYPE: {unit_type} of ID {unit_id}\n")
+        deserialized[unit_id] = name
         return name
 
 def enable_feature(feature: str):
+    global features
+    sys.stderr.write(f"Feature enabled: {feature}\n")
     features.append(feature)
 
 def has_feature(feature:str):
